@@ -6,7 +6,7 @@ import HomePage from './pages/homepage/homepage.component';
 import ShopPage from './pages/shop/shop.component';
 import Header from './components/header/header.component';
 import SignInSignUp from './pages/sign-in-and-sign-up/sign-in-and-sign-up.component';
-import { auth } from './firebase/firebase.utils';
+import { auth, createUserProfileDocument } from './firebase/firebase.utils';
 
 class App extends React.Component {
   state = {
@@ -16,10 +16,32 @@ class App extends React.Component {
   unsubscribeFromAuth = null;
 
   componentDidMount() {
-    this.unsubscribeFromAuth = auth.onAuthStateChanged(user => {
-      this.setState({ currentUser: user})
+    //LISTENS TO DATABASE FOR CHANGES
+    this.unsubscribeFromAuth = auth.onAuthStateChanged(async userAuth => {
 
-      console.log(user)
+      //CHECKS IF AUTH OBJECT EXISTS; HAPPENS IF USER SIGNS IN
+      if (userAuth) {
+        //SETS THE REFERENCE TO DATABASE WHERE USERS ARE STORED
+        const userRef = await createUserProfileDocument(userAuth);
+        
+        //USES onSnapShot METHOD TO CALL SNAPSHOT OBJECT
+        userRef.onSnapshot(snapShot => {
+
+          //SETS THE STATE TO THE USER DATA FROM DATABASE
+          this.setState({
+            currentUser: {
+              id: snapShot.id,
+
+              //SnapShot OBJECT DOESN"T HOLD ANY USER DATA. USE DATA() METHOD TO RETRIEVE DATA AND SET STATE 
+              ...snapShot.data()
+            }
+          });
+          console.log(this.state);
+        })
+
+      } else {
+        this.setState({ currentUser: userAuth });
+      }
     })
   }
 
