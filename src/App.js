@@ -1,24 +1,26 @@
 import React from 'react';
 import './App.css';
 import { Route, Switch } from 'react-router-dom';
+import { connect } from 'react-redux';
 
 import HomePage from './pages/homepage/homepage.component';
 import ShopPage from './pages/shop/shop.component';
 import Header from './components/header/header.component';
 import SignInSignUp from './pages/sign-in-and-sign-up/sign-in-and-sign-up.component';
 import { auth, createUserProfileDocument } from './firebase/firebase.utils';
+import { setCurrentUser } from './redux/user/user.action';
 
 class App extends React.Component {
-  state = {
-    currentUser: null
-  }
-
   unsubscribeFromAuth = null;
 
   componentDidMount() {
+
+    const { setCurrentUser } = this.props;
+
     //LISTENS TO DATABASE FOR CHANGES
     this.unsubscribeFromAuth = auth.onAuthStateChanged(async userAuth => {
 
+      //BELOW IS HOW WE STORE USER DATA FROM THE DATEBASE TO THE APP STATE
       //CHECKS IF AUTH OBJECT EXISTS; HAPPENS IF USER SIGNS IN
       if (userAuth) {
         //SETS THE REFERENCE TO DATABASE WHERE USERS ARE STORED
@@ -28,18 +30,16 @@ class App extends React.Component {
         userRef.onSnapshot(snapShot => {
 
           //SETS THE STATE TO THE USER DATA FROM DATABASE
-          this.setState({
-            currentUser: {
+          setCurrentUser({
               id: snapShot.id,
 
-              //SnapShot OBJECT DOESN"T HOLD ANY USER DATA. USE DATA() METHOD TO RETRIEVE DATA AND SET STATE 
+              //SnapShot OBJECT DOESN'T HOLD ANY USER DATA. USE DATA() METHOD TO RETRIEVE DATA AND SET STATE 
               ...snapShot.data()
-            }
+            });
           });
-        })
-
       } else {
-        this.setState({ currentUser: userAuth });
+        //IF userAUTH is NULL, MEANING NO ONE IS SIGNED IN. WE STILL WANT STATE TO BE NULL. ELSE HAPPENS IF !userAuth
+        setCurrentUser(userAuth);
       }
     })
   }
@@ -51,7 +51,7 @@ class App extends React.Component {
   render() {
     return (
       <div>
-        <Header currentUser={this.state.currentUser} />
+        <Header />
         <Switch>
           <Route exact path='/' component={HomePage} />
           <Route exact path='/shop/' component={ShopPage} />
@@ -62,4 +62,8 @@ class App extends React.Component {
   }
 }
 
-export default App;
+const mapDispatchToProps = dispatch => ({
+  setCurrentUser: user => dispatch(setCurrentUser(user))
+});
+
+export default connect(null, mapDispatchToProps)(App);
