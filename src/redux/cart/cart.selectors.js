@@ -10,6 +10,19 @@ export const selectCartItems = createSelector(
     cart => cart.cartItems
 );
 
+export const selectCartHidden = createSelector(
+    [selectCart],
+    cart => cart.hidden
+);
+
+export const selectCartTotal = createSelector(
+    [selectCartItems],
+        //accumlates the count total for the quantity value for all properties. This is called a Selector; where we go through the state to pull out a new value
+        cartItems => cartItems.reduce(
+            (totalPrice, cartItems) => totalPrice + (cartItems.quantity * cartItems.price) , 0 //method goes through each quantity value and add to the accumaltedQuantity
+        )
+)
+
 export const selectCartItemCount = createSelector(
     [selectCartItems],
         //accumlates the count total for the quantity value for all properties. This is called a Selector; where we go through the state to pull out a new value
