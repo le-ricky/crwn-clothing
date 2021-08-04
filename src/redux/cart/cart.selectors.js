@@ -1,6 +1,6 @@
 import { createSelector } from 'reselect';
 
-//Input Selector: takes the whole state and returns a slice of it. This is case, returns cartItems
+//Input Selector: takes the whole state and returns a slice of it. This is case, returns cart
 const selectCart = state => state.cart;
 
 //Output Selector
